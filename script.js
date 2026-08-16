@@ -1,0 +1,17 @@
+const enc=new TextEncoder(),dec=new TextDecoder();let rsaKeys,aesKey,iv,encryptedMessage,encryptedAesKey;
+const $=id=>document.getElementById(id);
+function showToast(message){
+  let t=document.getElementById("toast");
+  if(!t) return;
+  t.textContent=message;
+  t.classList.add("show");
+  clearTimeout(window.__toastTimer);
+  window.__toastTimer=setTimeout(()=>t.classList.remove("show"),2200);
+}
+function b64(x){let a=new Uint8Array(x),s="";for(let i=0;i<a.length;i+=0x8000)s+=String.fromCharCode(...a.subarray(i,i+0x8000));return btoa(s)}
+function fromB64(s){let b=atob(s.trim()),a=new Uint8Array(b.length);for(let i=0;i<b.length;i++)a[i]=b.charCodeAt(i);return a}
+async function init(){rsaKeys=await crypto.subtle.generateKey({name:"RSA-OAEP",modulusLength:2048,publicExponent:new Uint8Array([1,0,1]),hash:"SHA-256"},true,["encrypt","decrypt"]);$("status").textContent="RSA-2048 key pair ready. Public key protects the AES key."}
+async function encrypt(){let m=$("message").value;if(!m.trim())return;try{aesKey=await crypto.subtle.generateKey({name:"AES-GCM",length:256},true,["encrypt","decrypt"]);iv=crypto.getRandomValues(new Uint8Array(12));encryptedMessage=await crypto.subtle.encrypt({name:"AES-GCM",iv},aesKey,enc.encode(m));let raw=await crypto.subtle.exportKey("raw",aesKey);encryptedAesKey=await crypto.subtle.encrypt({name:"RSA-OAEP"},rsaKeys.publicKey,raw);let cipher="IV: "+b64(iv)+"\nCIPHERTEXT:\n"+b64(encryptedMessage);$("ciphertext").textContent=cipher;$("encryptedKey").textContent=b64(encryptedAesKey);$("status").textContent="Encryption successful. Copy both values to the Decryption tab.";showToast("Encrypted! Copy the two outputs below, then open Decryption.")}catch(e){$("status").textContent="Encryption failed: "+e.message}}
+async function decrypt(){try{let rawCipher=$("pasteCipher").value.trim(),keyText=$("pasteKey").value.trim();if(!rawCipher||!keyText)throw Error("Paste both encrypted values first.");let lines=rawCipher.split("\n");let ivLine=lines.find(x=>x.startsWith("IV:"));let ctIndex=lines.findIndex(x=>x.startsWith("CIPHERTEXT:"));if(!ivLine||ctIndex<0)throw Error("Invalid ciphertext format.");let pastedIv=fromB64(ivLine.replace("IV:","").trim());let ct=fromB64(lines.slice(ctIndex+1).join("").trim());let protectedKey=fromB64(keyText);let rawKey=await crypto.subtle.decrypt({name:"RSA-OAEP"},rsaKeys.privateKey,protectedKey);let key=await crypto.subtle.importKey("raw",rawKey,{name:"AES-GCM"},false,["decrypt"]);let plain=await crypto.subtle.decrypt({name:"AES-GCM",iv:pastedIv},key,ct);$("decrypted").textContent=dec.decode(plain);$("decryptStatus").textContent="Decryption successful. RSA recovered the AES key and AES recovered the original message."}catch(e){$("decrypted").textContent="Decryption failed: "+e.message;$("decryptStatus").textContent="Please check that both copied values are complete and unchanged."}}
+document.querySelectorAll(".tab").forEach(t=>t.onclick=()=>{document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));document.querySelectorAll(".panel").forEach(x=>x.classList.remove("active"));t.classList.add("active");$(t.dataset.tab).classList.add("active")});
+$("encryptBtn").onclick=encrypt;$("decryptBtn").onclick=decrypt;document.querySelectorAll("[data-copy]").forEach(b=>b.onclick=async()=>{await navigator.clipboard.writeText($(b.dataset.copy).textContent);b.textContent="Copied ✓";setTimeout(()=>b.textContent=b.dataset.copy==="ciphertext"?"Copy Ciphertext":"Copy RSA Key",1300)});init().catch(e=>$("status").textContent="Crypto initialization failed: "+e.message);

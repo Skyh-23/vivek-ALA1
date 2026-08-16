@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Secure Messaging | AES + RSA</title><link rel="stylesheet" href="style.css"></head>
+<body>
+<main class="container">
+<header>
+  <span class="badge">CNS • ALA 1</span>
+  <h1>Secure Messaging</h1>
+  <p>AES + RSA Hybrid Encryption Demonstration</p>
+  <div class="presented">Present By <strong>Vivek Boricha</strong></div>
+  <div class="tags"><span>AES-256-GCM</span><span>RSA-OAEP</span><span>Web Crypto API</span></div>
+</header>
+
+<nav class="tabs">
+  <button class="tab active" data-tab="encryptPanel">🔒 Encryption</button>
+  <button class="tab" data-tab="decryptPanel">🔓 Decryption</button>
+</nav>
+
+<section id="encryptPanel" class="panel active">
+  <section class="card"><h2>01 · Enter Message</h2><p>The sender enters a plaintext message and encrypts it using AES-256-GCM.</p>
+  <textarea id="message">Hello! This is my secure CNS ALA message.</textarea>
+  <button id="encryptBtn">🔒 Encrypt Message</button></section>
+
+  <div class="inline-status"><span class="dot"></span><span id="status">Preparing RSA-2048 key pair...</span></div>
+  <div class="grid">
+    <section class="card"><h2>02 · AES Encrypted Message</h2><p>Copy this complete value and paste it into the Decryption page.</p>
+      <div class="output-head"><span class="label-chip aes-chip">AES OUTPUT</span><button class="secondary copy-btn" data-copy="ciphertext">Copy Ciphertext</button></div>
+      <pre id="ciphertext">Waiting for encryption...</pre></section>
+    <section class="card"><h2>03 · RSA Encrypted AES Key</h2><p>Copy this key and paste it into the Decryption page.</p>
+      <div class="output-head"><span class="label-chip rsa-chip">RSA OUTPUT</span><button class="secondary copy-btn" data-copy="encryptedKey">Copy RSA Key</button></div>
+      <pre id="encryptedKey">Waiting for encryption...</pre></section>
+  </div>
+  <div class="copy-guide"><div class="guide-title">04 · Transmit</div>
+    <div class="guide-number">1</div><div><b>Copy AES Encrypted Message</b><span>Use the button inside the AES output box.</span></div>
+    <div class="guide-arrow">→</div>
+    <div class="guide-number">2</div><div><b>Copy RSA Encrypted AES Key</b><span>Use the button inside the RSA output box.</span></div>
+    <div class="guide-arrow">→</div>
+    <div class="guide-number">3</div><div><b>Open Decryption</b><span>Paste both values manually.</span></div>
+  </div>
+</section>
+
+<section id="decryptPanel" class="panel">
+  <section class="card"><h2>01 · Recipient Decryption</h2>
+  <p>Manually paste the encrypted values received from the sender.</p>
+  <label>AES Encrypted Message</label>
+  <textarea id="pasteCipher" class="paste" placeholder="Paste the complete AES encrypted value here..."></textarea>
+  <label>RSA Encrypted AES Key</label>
+  <textarea id="pasteKey" class="paste" placeholder="Paste the RSA encrypted AES key here..."></textarea>
+  <button id="decryptBtn">🔓 Decrypt Message</button>
+  <div class="result"><label>Decrypted Message</label><div id="decrypted">No decrypted message yet.</div></div>
+  </section>
+
+  <section class="card"><div class="status"><span class="dot"></span><span id="decryptStatus">RSA private key is kept in this browser session for the demonstration.</span></div></section>
+</section>
+
+<section class="card explanation"><h2>How Hybrid Encryption Works</h2>
+<div class="how">
+<div><b>1. AES Encryption</b><span>A random AES-256 key encrypts the message with AES-GCM.</span></div>
+<div><b>2. RSA Protection</b><span>The recipient's RSA public key encrypts the AES key.</span></div>
+<div><b>3. Manual Transmission</b><span>Sender copies the ciphertext and protected AES key to the recipient.</span></div>
+<div><b>4. Decryption</b><span>Recipient pastes both values, RSA recovers the AES key, then AES decrypts the message.</span></div>
+</div></section>
+
+<footer>CNS ALA • Cryptography and Network Security • Present By Vivek Boricha</footer>
+</main><div id="toast"></div><script src="script.js"></script></body></html>
